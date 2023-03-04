@@ -109,7 +109,8 @@ resource "aws_nat_gateway" "my_nat" {
 # который не поддерживает security groups
 
 resource "aws_network_acl" "nlb_acl" {
-  vpc_id = aws_vpc.my_vpc.id
+  # vpc_id = aws_vpc.my_vpc.id
+  subnet_id      = aws_subnet.public_subnet.id
 }
 
 # для вхощего трафика
