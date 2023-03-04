@@ -140,7 +140,7 @@ resource "aws_lb_listener" "web" {
 #target group для лоуд беленсера, в которую будут входить машины для балансировки
 
 resource "aws_lb_target_group" "web" {
-  name     = "my_target_group"
+  name     = "my-target-group"
   port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
   protocol = "HTTP"
   
