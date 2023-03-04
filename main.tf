@@ -100,11 +100,3 @@ resource "aws_nat_gateway" "my_nat" {
 }
 
 
-# Настройка backend для хранения состояния
-terraform {
-  backend "s3" {
-    bucket = "my-terraform-state"
-    key    = "my-terraform-state"
-    region = "us-west-2"
-  }
-}
