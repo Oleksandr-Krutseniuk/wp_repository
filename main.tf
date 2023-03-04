@@ -119,51 +119,67 @@ resource "aws_lb" "alb" {
 }
 
 # Создаем Target Group
-resource "aws_lb_target_group" "tg" {
-  #name_prefix       = "lb-target-group"
-  port              = 80
-  protocol          = "HTTP"
-  vpc_id            = aws_vpc.my_vpc.id
-  target_type       = "instance"
+#resource "aws_lb_target_group" "tg" {
+  # #name_prefix       = "lb-target-group"
+  # port              = 80
+  # protocol          = "HTTP"
+  # vpc_id            = aws_vpc.my_vpc.id
+  # target_type       = "instance"
 
-  health_check {
-    enabled             = true
-    interval            = 30
-    path                = "/"
-    port                = 80
-    protocol            = "HTTP"
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-  tags = {
-    Name = "my-load-balancer-tg"
-  }
-}
+  # health_check {
+    # enabled             = true
+    # interval            = 30
+    # path                = "/"
+    # port                = 80
+    # protocol            = "HTTP"
+    # timeout             = 5
+    # healthy_threshold   = 2
+    # unhealthy_threshold = 2
+  # }
+  # tags = {
+    # Name = "my-load-balancer-tg"
+  # }
+# }
 
 # Создаем Security Group для ALB
-resource "aws_security_group" "lb" {
+# resource "aws_security_group" "lb" {
  # name_prefix = "example-lb-sg"
 
-  ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # ingress {
+    # from_port = 80
+    # to_port = 80
+    # protocol = "tcp"
+    # cidr_blocks = ["0.0.0.0/0"]
+  # }
 
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # egress {
+    # from_port = 0
+    # to_port = 0
+    # protocol = "-1"
+    # cidr_blocks = ["0.0.0.0/0"]
+  # }
 
+  # tags = {
+    # Name = "lb-security_group"
+  # }
+# }
+
+# Создаем приватный инстанс, который будет находиться за ALB
+resource "aws_instance" "private_alb" {
+  ami           = "ami-0c94855ba95c71c99"
+  instance_type = "t3.micro"
+  subnet_id     = aws_subnet.private_subnet.id
+  vpc_security_group_ids = [aws_security_group.instance.id]
   tags = {
-    Name = "lb-security_group"
+    Name = "Private-Instance-ALB"
   }
 }
 
-
+# Добавляем созданный инстанс в Target Group
+resource "aws_lb_target_group_attachment" "private_alb_attachment" {
+  target_group_arn = aws_lb_target_group.tg.arn
+  target_id        = aws_instance.private_alb.id
+  port             = 80
+}
 
 
