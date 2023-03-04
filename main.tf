@@ -219,7 +219,7 @@ resource "aws_lb_target_group_attachment" "web" {
 # создание EC2
 
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0c94855ba95c71c99" # latest Ubuntu 20.04 LTS HVM EBS
+  ami           = "ami-0aa5fa88fa2ec19dc" # latest Ubuntu 20.04 LTS HVM EBS
   instance_type = "t3.micro"
   subnet_id     = aws_subnet.private_subnet.id
 
