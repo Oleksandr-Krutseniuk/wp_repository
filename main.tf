@@ -107,29 +107,45 @@ resource "aws_nat_gateway" "my_nat" {
 
 
 
-/*
 
 
 # Создаем Application Load Balancer
-resource "aws_lb" "alb" {
-  name               = "example-alb"
+
+resource "aws_lb" "web" {
+  name               = "my-load-balancer"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb.id]
-  subnets            = [aws_subnet.public_subnet.id]
-
+  subnets            = aws_subnet.public_subnet.id
+  security_groups    = ["${aws_security_group.lb.id}"] # указывает security group, в которую входит LB
+  
   tags = {
     Name = "my-load-balancer"
   }
 }
 
-# Создаем Target Group
-resource "aws_lb_target_group" "tg" {
-  #name_prefix       = "lb-target-group"
+# эта штука определяет порт, который слушает лоуд беленсер
+
+resource "aws_lb_listener" "web" {
+  load_balancer_arn = "${aws_lb.web.arn}" # указать ЛБ 
   port              = 80
   protocol          = "HTTP"
-  vpc_id            = aws_vpc.my_vpc.id
-  target_type       = "instance"
+
+  default_action {
+    target_group_arn = "${aws_lb_target_group.web.arn}" # указывает таргет-группу, которой будет направлен трафик с ЛБ
+    type             = "forward"
+  }
+}
+
+
+#target group для лоуд беленсера, в которую будут входить машины для балансировки
+
+resource "aws_lb_target_group" "web" {
+  name     = "my_target_group"
+  port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
+  protocol = "HTTP"
+  
+  vpc_id = aws_vpc.my_vpc.id
+  target_type = "instance"
 
   health_check {
     enabled             = true
@@ -137,18 +153,19 @@ resource "aws_lb_target_group" "tg" {
     path                = "/"
     port                = 80
     protocol            = "HTTP"
-    timeout             = 5
+    timeout             = 20
     healthy_threshold   = 2
     unhealthy_threshold = 2
    }
-   tags = {
-   Name = "my-load-balancer-tg"
-   }
- }
+
+  tags = {
+    Name = "my_lb_target_group"
+  }
+}
 
 # Создаем Security Group для ALB
 resource "aws_security_group" "lb" {
-  name_prefix = "example-lb-sg"
+  # name_prefix = "example-lb-sg"
 
    ingress {
    from_port = 80
@@ -169,22 +186,14 @@ resource "aws_security_group" "lb" {
   }
  }
 
-# Создаем приватный инстанс, который будет находиться за ALB
-resource "aws_instance" "private_alb" {
-  ami           = "ami-0c94855ba95c71c99"
-  instance_type = "t3.micro"
-  subnet_id     = aws_subnet.private_subnet.id
-  #vpc_security_group_ids = [aws_security_group.instance.id]
-  tags = {
-    Name = "Private-Instance-ALB"
-  }
-}
+/*
 
-# Добавляем созданный инстанс в Target Group
-resource "aws_lb_target_group_attachment" "private_alb_attachment" {
-  target_group_arn = aws_lb_target_group.tg.arn
-  target_id        = aws_instance.private_alb.id
+# тут будет указано, какой ЕС2 будет входить в target group, связанную с лоад беленсером
+resource "aws_lb_target_group_attachment" "web" {
+  target_group_arn = "${aws_lb_target_group.web.arn}"
+  target_id        = "${aws_instance.web.id}"
   port             = 80
 }
 
 */
+
