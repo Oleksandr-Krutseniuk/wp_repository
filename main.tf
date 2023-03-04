@@ -207,15 +207,48 @@ resource "aws_lb_target_group" "web" {
 }
 
 
-
-/*
-
 # тут будет указано, какой ЕС2 будет входить в target group, связанную с лоад беленсером
 resource "aws_lb_target_group_attachment" "web" {
   target_group_arn = "${aws_lb_target_group.web.arn}"
-  target_id        = "${aws_instance.web.id}"
+  target_id        = "${aws_instance.ec2_instance.id}"
   port             = 80
 }
 
-*/
 
+
+# создание EC2
+
+resource "aws_instance" "ec2_instance" {
+  ami           = "ami-0c94855ba95c71c99" # latest Ubuntu 20.04 LTS HVM EBS
+  instance_type = "t3.micro"
+  subnet_id     = aws_subnet.private_subnet.id
+
+  tags = {
+    Name = "My-EC2 Instance"
+  }
+
+  # Security Group allowing HTTP traffic from NLB
+  security_groups = [aws_security_group.allow_http_for_ec2.id]
+  
+}
+
+# Security Group for EC2 allowing HTTP traffic from NLB
+resource "aws_security_group" "allow_http_for_ec2" {
+  name_prefix = "allow-http"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [aws_subnet.public_subnet.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  vpc_id = aws_vpc.my_vpc.id
+}
