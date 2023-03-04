@@ -229,7 +229,10 @@ resource "aws_instance" "ec2_instance" {
 
   # Security Group allowing HTTP traffic from NLB
   security_groups = [aws_security_group.allow_http_for_ec2.id]
-  depends_on = [aws_lb.web]
+  depends_on = [
+    aws_lb.web,
+    aws_lb_target_group.web
+    ]
 }
 
 # Security Group for EC2 allowing HTTP traffic from NLB
