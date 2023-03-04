@@ -222,7 +222,7 @@ resource "aws_instance" "ec2_instance" {
   ami           = "ami-0aa5fa88fa2ec19dc" # latest Ubuntu 20.04 LTS HVM EBS
   instance_type = "t3.micro"
   subnet_id     = aws_subnet.private_subnet.id
-  availability_zone = aws_lb.nlb.zone_id
+  availability_zone = aws_lb.web.zone_id
   tags = {
     Name = "My-EC2 Instance"
   }
