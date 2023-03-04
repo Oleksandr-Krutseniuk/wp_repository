@@ -22,10 +22,10 @@ resource "aws_internet_gateway" "my_igw" {
 }
 
 # Присоединение Internet gateway к VPC
-resource "aws_internet_gateway_attachment" "my_igw_attachment" {
-  vpc_id      = aws_vpc.my_vpc.id
-  internet_gateway_id = aws_internet_gateway.my_igw.id
-}
+#resource "aws_internet_gateway_attachment" "my_igw_attachment" {
+  #vpc_id      = aws_vpc.my_vpc.id
+  #internet_gateway_id = aws_internet_gateway.my_igw.id
+#}
 
 
 
@@ -33,7 +33,7 @@ resource "aws_internet_gateway_attachment" "my_igw_attachment" {
 resource "aws_subnet" "public_subnet" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  #availability_zone = "us-east-1a"
   tags = {
     Name = "Public-Subnet"
   }
@@ -62,7 +62,7 @@ resource "aws_route_table_association" "public_subnet_association" {
 # Создание приватной подсети
 resource "aws_subnet" "private_subnet" {
   vpc_id     = aws_vpc.my_vpc.id
-  availability_zone = "us-east-1a"
+  #availability_zone = "us-east-1a"
   tags = {
     Name = "Private-Subnet"
   }
