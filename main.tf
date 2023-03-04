@@ -119,50 +119,50 @@ resource "aws_lb" "alb" {
 }
 
 # Создаем Target Group
-#resource "aws_lb_target_group" "tg" {
-  # #name_prefix       = "lb-target-group"
-  # port              = 80
-  # protocol          = "HTTP"
-  # vpc_id            = aws_vpc.my_vpc.id
-  # target_type       = "instance"
+resource "aws_lb_target_group" "tg" {
+  name_prefix       = "lb-target-group"
+  port              = 80
+  protocol          = "HTTP"
+  vpc_id            = aws_vpc.my_vpc.id
+  target_type       = "instance"
 
-  # health_check {
-    # enabled             = true
-    # interval            = 30
-    # path                = "/"
-    # port                = 80
-    # protocol            = "HTTP"
-    # timeout             = 5
-    # healthy_threshold   = 2
-    # unhealthy_threshold = 2
-  # }
-  # tags = {
-    # Name = "my-load-balancer-tg"
-  # }
-# }
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/"
+    port                = 80
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+   }
+   tags = {
+   Name = "my-load-balancer-tg"
+   }
+ }
 
 # Создаем Security Group для ALB
-# resource "aws_security_group" "lb" {
- # name_prefix = "example-lb-sg"
+resource "aws_security_group" "lb" {
+  name_prefix = "example-lb-sg"
 
-  # ingress {
-    # from_port = 80
-    # to_port = 80
-    # protocol = "tcp"
-    # cidr_blocks = ["0.0.0.0/0"]
-  # }
+   ingress {
+   from_port = 80
+   to_port = 80
+   protocol = "tcp"
+   cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  # egress {
-    # from_port = 0
-    # to_port = 0
-    # protocol = "-1"
-    # cidr_blocks = ["0.0.0.0/0"]
-  # }
+   egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  # tags = {
-    # Name = "lb-security_group"
-  # }
-# }
+   tags = {
+    Name = "lb-security_group"
+  }
+ }
 
 # Создаем приватный инстанс, который будет находиться за ALB
 resource "aws_instance" "private_alb" {
