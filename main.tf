@@ -120,7 +120,7 @@ resource "aws_lb" "alb" {
 
 # Создаем Target Group
 resource "aws_lb_target_group" "tg" {
-  name_prefix       = "lb-target-group"
+  #name_prefix       = "lb-target-group"
   port              = 80
   protocol          = "HTTP"
   vpc_id            = aws_vpc.my_vpc.id
@@ -169,7 +169,7 @@ resource "aws_instance" "private_alb" {
   ami           = "ami-0c94855ba95c71c99"
   instance_type = "t3.micro"
   subnet_id     = aws_subnet.private_subnet.id
-  vpc_security_group_ids = [aws_security_group.instance.id]
+  #vpc_security_group_ids = [aws_security_group.instance.id]
   tags = {
     Name = "Private-Instance-ALB"
   }
