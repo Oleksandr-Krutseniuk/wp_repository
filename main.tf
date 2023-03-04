@@ -156,7 +156,7 @@ resource "aws_lb" "web" {
   load_balancer_type = "network"
  # subnets            = [aws_subnet.public_subnet.id]
   
-  availability_zones = aws_subnet.private_subnet.availability_zone
+  
   subnet_mapping { # размещает беленсер в пуьличной подсети
     subnet_id = aws_subnet.public_subnet.id
     }
@@ -221,6 +221,7 @@ resource "aws_lb_target_group_attachment" "web" {
 resource "aws_instance" "ec2_instance" {
   ami           = "ami-0aa5fa88fa2ec19dc" # latest Ubuntu 20.04 LTS HVM EBS
   instance_type = "t3.micro"
+  availability_zone = "us-west-2b"
   subnet_id     = aws_subnet.private_subnet.id
   availability_zone = aws_subnet.private_subnet.availability_zone # EC2 в данном случае должен быть в одной зоне с NLB
   tags = {
