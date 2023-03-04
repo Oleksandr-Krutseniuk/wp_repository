@@ -109,7 +109,7 @@ resource "aws_nat_gateway" "my_nat" {
 # который не поддерживает security groups
 
 resource "aws_network_acl" "nlb_acl" {
-  # vpc_id = aws_vpc.my_vpc.id
+  vpc_id = aws_vpc.my_vpc.id
   subnet_id      = aws_subnet.public_subnet.id
 }
 
@@ -124,7 +124,7 @@ resource "aws_network_acl_rule" "allow_http_ingress" {
   from_port      = 80
   to_port        = 80
   egress         = false
-  subnet_id      = aws_subnet.public_subnet.id
+ # subnet_id      = aws_subnet.public_subnet.id
  # subnet_ids = [
  #   aws_subnet.public_subnet.id
  #   ]
@@ -141,7 +141,7 @@ resource "aws_network_acl_rule" "allow_http_egress" {
   from_port      = 80
   to_port        = 80
   egress         = true
-  subnet_id      = aws_subnet.public_subnet.id
+ # subnet_id      = aws_subnet.public_subnet.id
  # subnet_ids = [
  #   aws_subnet.public_subnet.id
  #   ]
