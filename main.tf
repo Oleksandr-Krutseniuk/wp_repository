@@ -115,7 +115,7 @@ resource "aws_lb" "web" {
   name               = "my-load-balancer"
   internal           = false
   load_balancer_type = "application"
-  subnets            = aws_subnet.public_subnet.id
+  subnets            = [aws_subnet.public_subnet.id]
   security_groups    = ["${aws_security_group.lb.id}"] # указывает security group, в которую входит LB
   
   tags = {
