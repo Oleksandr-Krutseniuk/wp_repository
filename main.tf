@@ -156,11 +156,10 @@ resource "aws_lb" "web" {
   load_balancer_type = "network"
  # subnets            = [aws_subnet.public_subnet.id]
   
-  
+  availability_zones = aws_subnet.private_subnet.availability_zone
   subnet_mapping { # размещает беленсер в пуьличной подсети
     subnet_id = aws_subnet.public_subnet.id
-    availability_zones = aws_subnet.private_subnet.availability_zone
-  }
+    }
 
   tags = {
     Name = "my-load-balancer"
