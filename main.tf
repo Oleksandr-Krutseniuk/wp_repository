@@ -171,7 +171,7 @@ resource "aws_lb" "web" {
 resource "aws_lb_listener" "web" {
   load_balancer_arn = "${aws_lb.web.arn}" # указать ЛБ 
   port              = 80
-  protocol          = "HTTP"
+  protocol          = "TCP"
 
   default_action {
     target_group_arn = "${aws_lb_target_group.web.arn}" # указывает таргет-группу, которой будет направлен трафик с ЛБ
