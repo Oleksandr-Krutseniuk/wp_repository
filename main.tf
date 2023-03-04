@@ -90,19 +90,24 @@ resource "aws_route_table_association" "private_subnet_association" {
 # Создание elastic IP для NAT
 resource "aws_eip" "my_eip" {
   vpc = true
+  tags = {
+    Name = "my_elastic_IP"
+  }
 }
 
 # Создание NAT gateway
 resource "aws_nat_gateway" "my_nat" {
   allocation_id = aws_eip.my_eip.id
   subnet_id     = aws_subnet.public_subnet.id
-
+  tags = {
+    Name = "my_NAT_gateway"
+  }
  }
 
 
 
 
-
+/*
 
 
 # Создаем Application Load Balancer
@@ -182,4 +187,4 @@ resource "aws_lb_target_group_attachment" "private_alb_attachment" {
   port             = 80
 }
 
-
+*/
