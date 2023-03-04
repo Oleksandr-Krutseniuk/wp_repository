@@ -210,7 +210,7 @@ resource "aws_lb_target_group" "web" {
 # тут будет указано, какой ЕС2 будет входить в target group, связанную с лоад беленсером
 resource "aws_lb_target_group_attachment" "web" {
   target_group_arn = "${aws_lb_target_group.web.arn}"
-  target_id        = "${aws_instance.ec2_instance.id}"
+  target_id        = aws_instance.ec2_instance.private_ip
   port             = 80
 }
 
