@@ -110,7 +110,7 @@ resource "aws_nat_gateway" "my_nat" {
 
 resource "aws_network_acl" "nlb_acl" {
   vpc_id = aws_vpc.my_vpc.id
-  subnet_id      = aws_subnet.public_subnet.id
+  subnet_ids      = [aws_subnet.public_subnet.id]
 }
 
 # для вхощего трафика
