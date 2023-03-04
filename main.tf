@@ -223,7 +223,7 @@ resource "aws_instance" "ec2_instance" {
   instance_type = "t3.micro"
   availability_zone = "us-west-2b"
   subnet_id     = aws_subnet.private_subnet.id
-  availability_zone = aws_subnet.private_subnet.availability_zone # EC2 в данном случае должен быть в одной зоне с NLB
+  #availability_zone = aws_subnet.private_subnet.availability_zone # EC2 в данном случае должен быть в одной зоне с NLB
   tags = {
     Name = "My-EC2 Instance"
   }
