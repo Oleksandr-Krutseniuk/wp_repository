@@ -97,7 +97,99 @@ resource "aws_nat_gateway" "my_nat" {
   allocation_id = aws_eip.my_eip.id
   subnet_id     = aws_subnet.public_subnet.id
 
- # depends_on = [aws_internet_gateway_attachment.my_igw_attachment]
+ }
+
+
+
+
+
+
+
+# Создаем Application Load Balancer
+resource "aws_lb" "alb" {
+  name               = "example-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb.id]
+  subnets            = [aws_subnet.public_subnet.id]
+
+  tags = {
+    Name = "my-load-balancer"
+  }
+}
+
+# Создаем Target Group
+resource "aws_lb_target_group" "tg" {
+  name_prefix       = "lb-target-group"
+  port              = 80
+  protocol          = "HTTP"
+  vpc_id            = aws_vpc.my_vpc.id
+  target_type       = "instance"
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    path                = "/"
+    port                = 80
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+# Создаем Security Group для ALB
+resource "aws_security_group" "lb" {
+ # name_prefix = "example-lb-sg"
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "lb-security_group"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Создаем приватный инстанс, который будет находиться за ALB
+resource "aws_instance" "private_alb" {
+  ami           = "ami-0c94855ba95c71c99"
+  instance_type = "t3.micro"
+  subnet_id     = aws_subnet.private.id
+  vpc_security_group_ids = [aws_security_group.instance.id]
+  tags = {
+    Name = "Private-Instance-ALB"
+  }
+}
+
+# Добавляем созданный инстанс в Target Group
+resource "aws_lb_target_group_attachment" "private_alb_attachment" {
+  target_group_arn = aws_lb_target_group.tg.arn
+  target_id        = aws_instance.private_alb.id
+  port             = 80
 }
 
 
