@@ -105,8 +105,46 @@ resource "aws_nat_gateway" "my_nat" {
  }
 
 
+# создаю ACL правило для Load Balancer, поскольку я исполюзую тип "network",
+# который не поддерживает security groups
 
+resource "aws_network_acl" "nlb_acl" {
+  vpc_id = aws_vpc.my_vpc.id
+}
 
+# для вхощего трафика
+
+resource "aws_network_acl_rule" "allow_http" {
+  network_acl_id = aws_network_acl.nlb_acl.id
+  rule_number    = 100
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 80
+  to_port        = 80
+  egress         = false
+  
+  subnet_ids = [
+    aws_subnet.public_subnet.id
+    ]
+}
+
+# для исходящего трафика
+
+resource "aws_network_acl_rule" "allow_http" {
+  network_acl_id = aws_network_acl.nlb_acl.id
+  rule_number    = 100
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 80
+  to_port        = 80
+  egress         = true
+  
+  subnet_ids = [
+    aws_subnet.public_subnet.id
+    ]
+}
 
 
 # Создаем Network Load Balancer
@@ -116,8 +154,12 @@ resource "aws_lb" "web" {
   internal           = false
   load_balancer_type = "network"
   subnets            = [aws_subnet.public_subnet.id]
-  security_groups    = ["${aws_security_group.lb.id}"] # указывает security group, в которую входит LB
   
+  
+  subnet_mapping { # размещает беленсер в пуьличной подсети
+    subnet_id = aws_subnet.public_subnet.id
+  }
+
   tags = {
     Name = "my-load-balancer"
   }
@@ -137,7 +179,7 @@ resource "aws_lb_listener" "web" {
 }
 
 
-#target group для лоуд беленсера, в которую будут входить машины для балансировки
+# target group для лоуд беленсера, в которую будут входить машины для балансировки
 
 resource "aws_lb_target_group" "web" {
   name     = "my-target-group"
@@ -163,28 +205,7 @@ resource "aws_lb_target_group" "web" {
   }
 }
 
-# Создаем Security Group для NLB
-resource "aws_security_group" "lb" {
-  # name_prefix = "example-lb-sg"
 
-   ingress {
-   from_port = 80
-   to_port = 80
-   protocol = "tcp"
-   cidr_blocks = ["0.0.0.0/0"]
-   }
-
-   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-   tags = {
-    Name = "lb-security_group"
-  }
- }
 
 /*
 
