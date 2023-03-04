@@ -114,7 +114,7 @@ resource "aws_network_acl" "nlb_acl" {
 
 # для вхощего трафика
 
-resource "aws_network_acl_rule" "allow_http" {
+resource "aws_network_acl_rule" "allow_http_ingress" {
   network_acl_id = aws_network_acl.nlb_acl.id
   rule_number    = 100
   protocol       = "tcp"
@@ -131,7 +131,7 @@ resource "aws_network_acl_rule" "allow_http" {
 
 # для исходящего трафика
 
-resource "aws_network_acl_rule" "allow_http" {
+resource "aws_network_acl_rule" "allow_http_egress" {
   network_acl_id = aws_network_acl.nlb_acl.id
   rule_number    = 100
   protocol       = "tcp"
