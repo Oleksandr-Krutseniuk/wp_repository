@@ -154,7 +154,7 @@ resource "aws_lb" "web" {
   name               = "my-load-balancer"
   internal           = false
   load_balancer_type = "network"
-  subnets            = [aws_subnet.public_subnet.id]
+ # subnets            = [aws_subnet.public_subnet.id]
   
   
   subnet_mapping { # размещает беленсер в пуьличной подсети
