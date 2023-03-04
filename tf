@@ -59,10 +59,6 @@ resource "aws_route_table_association" "public_subnet_association" {
   route_table_id = aws_route_table.public_route_table.id
 }
 
-
-
-
-
 # Создание приватной подсети
 resource "aws_subnet" "private_subnet" {
   vpc_id     = aws_vpc.my_vpc.id
@@ -75,15 +71,14 @@ resource "aws_subnet" "private_subnet" {
 # Создание route table для private subnet
 resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.my_vpc.id
-}
   route {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.my_nat.id
   }
-
   tags = {
     Name = "private-RT"
   }
+}
 
 # Присоединение private subnet к route table
 resource "aws_route_table_association" "private_subnet_association" {
