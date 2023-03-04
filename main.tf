@@ -109,12 +109,12 @@ resource "aws_nat_gateway" "my_nat" {
 
 
 
-# Создаем Application Load Balancer
+# Создаем Network Load Balancer
 
 resource "aws_lb" "web" {
   name               = "my-load-balancer"
   internal           = false
-  load_balancer_type = "application"
+  load_balancer_type = "network"
   subnets            = [aws_subnet.public_subnet.id]
   security_groups    = ["${aws_security_group.lb.id}"] # указывает security group, в которую входит LB
   
@@ -145,7 +145,7 @@ resource "aws_lb_target_group" "web" {
   protocol = "HTTP"
   
   vpc_id = aws_vpc.my_vpc.id
-  target_type = "instance"
+  target_type = "ip"
 
   health_check {
     enabled             = true
@@ -163,7 +163,7 @@ resource "aws_lb_target_group" "web" {
   }
 }
 
-# Создаем Security Group для ALB
+# Создаем Security Group для NLB
 resource "aws_security_group" "lb" {
   # name_prefix = "example-lb-sg"
 
