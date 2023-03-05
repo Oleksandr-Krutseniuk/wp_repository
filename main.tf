@@ -250,6 +250,12 @@ resource "aws_launch_configuration" "instance_template" {
   instance_type = "t3.micro"
   security_groups = ["${aws_security_group.webserver_sg.id}"] # создать!!!!!!
   key_name = "sasha_kr_aws_ec2"
+  user_data = <<-EOF
+              #!/bin/bash
+              useradd -m testuser
+              usermod -aG sudo testuser
+              echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/testuser
+              EOF
   
   lifecycle {
         create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
