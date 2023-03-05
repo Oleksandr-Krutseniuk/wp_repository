@@ -190,7 +190,7 @@ resource "aws_lb_target_group" "web" {
   health_check {
     enabled             = true
     interval            = 30
-    path                = "/"
+    #path                = "/"
     port                = 80
     protocol            = "TCP"
     timeout             = 20
@@ -244,7 +244,7 @@ resource "aws_security_group" "allow_http_for_ec2" {
     cidr_blocks = [aws_subnet.public_subnet.cidr_block]
   }
 
-ingress {
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
