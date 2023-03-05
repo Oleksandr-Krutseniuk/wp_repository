@@ -21,10 +21,6 @@ resource "aws_internet_gateway" "my_igw" {
   }
 }
 
-
-
-
-
 # Создание публичной подсети
 resource "aws_subnet" "public_subnet" {
   vpc_id     = aws_vpc.my_vpc.id
@@ -41,7 +37,7 @@ resource "aws_subnet" "public_subnet" {
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.my_vpc.id
   route {
-    cidr_block = "0.0.0.0/0"
+    destination_cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.my_igw.id
   }
   tags = {
@@ -70,18 +66,22 @@ resource "aws_subnet" "private_subnet" {
 resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.my_vpc.id
   route {
-    cidr_block = "0.0.0.0/0"
+    destination_cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.my_nat.id
+    target         = aws_nat_gateway.my_nat.id
   }
   tags = {
     Name = "private-RT"
   }
+  depends_on = [aws_subnet.private_subnet]
 }
 
 # Присоединение private subnet к route table
 resource "aws_route_table_association" "private_subnet_association" {
   subnet_id      = aws_subnet.private_subnet.id
   route_table_id = aws_route_table.private_route_table.id
+
+  depends_on = [aws_subnet.private_subnet]
 }
 
 # Создание elastic IP для NAT
@@ -144,6 +144,45 @@ resource "aws_network_acl_rule" "allow_http_egress" {
  #   ]
 }
 
+# ACL для частной сети
+
+resource "aws_network_acl" "backend_acl" {
+  vpc_id = aws_vpc.my_vpc.id
+  subnet_ids      = [aws_subnet.private_subnet.id]
+}
+
+# для вхощего трафика
+
+resource "aws_network_acl_rule" "allow_http_ingress_backend" {
+  network_acl_id = aws_network_acl.backend_acl.id
+  rule_number    = 100
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 80
+  to_port        = 80
+  egress         = false
+ # subnet_id      = aws_subnet.public_subnet.id
+ # subnet_ids = [
+ #   aws_subnet.public_subnet.id
+ #   ]
+}
+
+resource "aws_network_acl_rule" "allow_http_egress_backend" {
+  network_acl_id = aws_network_acl.backend_acl.id
+  rule_number    = 100
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 80
+  to_port        = 80
+  egress         = true
+ # subnet_id      = aws_subnet.public_subnet.id
+ # subnet_ids = [
+ #   aws_subnet.public_subnet.id
+ #   ]
+}
+
 
 # Создаем Network Load Balancer
 
@@ -154,7 +193,7 @@ resource "aws_lb" "web" {
  # subnets            = [aws_subnet.public_subnet.id]
   
   
-  subnet_mapping { # размещает беленсер в пуьличной подсети
+  subnet_mapping { # размещает беленсер в публичной подсети
     subnet_id = aws_subnet.public_subnet.id
     }
 
