@@ -21,19 +21,28 @@ resource "aws_internet_gateway" "my_igw" {
   }
 }
 
-# Создание публичной подсети
-resource "aws_subnet" "public_subnet" {
+
+# Создание публичной подсети1
+resource "aws_subnet" "public_subnet_1" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
-  #availability_zone = "us-east-1a"
+  map_public_ip_on_launch = true # для получения паблик айпи хостами сети
   tags = {
-    Name = "Public-Subnet"
+    Name = "Public-Subnet_1"
   }
 }
 
+# Создание публичной подсети2
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Public-Subnet_2"
+  }
+}
 
-
-# Создание route table для public subnet
+# Создание route table для public subnets
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.my_vpc.id
   route {
@@ -45,158 +54,132 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
-# Присоединение public subnet к route table
-resource "aws_route_table_association" "public_subnet_association" {
-  subnet_id      = aws_subnet.public_subnet.id
+# Присоединение public subnet1 к route table
+resource "aws_route_table_association" "public_subnet_association_1" {
+  subnet_id      = aws_subnet.public_subnet_1.id
   route_table_id = aws_route_table.public_route_table.id
 }
 
-# Создание приватной подсети
-resource "aws_subnet" "private_subnet" {
+# Присоединение public subnet2 к route table
+resource "aws_route_table_association" "public_subnet_association_2" {
+  subnet_id      = aws_subnet.public_subnet_association_2.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+# Создание приватной подсети1
+resource "aws_subnet" "private_subnet_1" {
   vpc_id     = aws_vpc.my_vpc.id
-  cidr_block = "10.0.2.0/24"
-  availability_zone = aws_subnet.public_subnet.availability_zone # В этой зоне будет бекенд NLB и он должен находиться в одной с NLB зоне 
-  tags = {
-    Name = "Private-Subnet"
+  cidr_block = "10.0.3.0/24"
+  availability_zone = aws_subnet.public_subnet_1.availability_zone
+   tags = {
+    Name = "Private-Subnet_1"
   }
-  depends_on = [aws_subnet.public_subnet]
 }
 
-# Создание route table для private subnet
-resource "aws_route_table" "private_route_table" {
-  vpc_id = aws_vpc.my_vpc.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.my_nat.id
-    
+# Создание приватной подсети2
+resource "aws_subnet" "private_subnet_2" {
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.4.0/24"
+  availability_zone = aws_subnet.public_subnet_2.availability_zone
+   tags = {
+    Name = "Private-Subnet_2"
   }
-  tags = {
-    Name = "private-RT"
-  }
-  depends_on = [aws_subnet.private_subnet]
 }
 
-# Присоединение private subnet к route table
-resource "aws_route_table_association" "private_subnet_association" {
-  subnet_id      = aws_subnet.private_subnet.id
-  route_table_id = aws_route_table.private_route_table.id
+# создать 2 EIP для 2 NAT + сами NAT.всего нужно по 2 потому-что подключение будет идти с 2 подсетей в 2 подсети
 
-  depends_on = [aws_subnet.private_subnet]
-}
-
-# Создание elastic IP для NAT
-resource "aws_eip" "my_eip" {
+# Создание elastic IP для NAT1
+resource "aws_eip" "my_eip_1" {
   vpc = true
   tags = {
-    Name = "my_elastic_IP"
+    Name = "my_elastic_IP_1"
   }
 }
 
-# Создание NAT gateway
-resource "aws_nat_gateway" "my_nat" {
+# Создание NAT gateway 1
+resource "aws_nat_gateway" "my_nat_1" {
   allocation_id = aws_eip.my_eip.id
-  subnet_id     = aws_subnet.public_subnet.id
+  subnet_id     = aws_subnet.public_subnet_1.id
   tags = {
-    Name = "my_NAT_gateway"
+    Name = "my_NAT_gateway_1"
+  }
+ }
+
+# Создание elastic IP для NAT2
+resource "aws_eip" "my_eip_2" {
+  vpc = true
+  tags = {
+    Name = "my_elastic_IP_2"
+  }
+}
+
+# Создание NAT gateway 2
+resource "aws_nat_gateway" "my_nat_2" {
+  allocation_id = aws_eip.my_eip.id
+  subnet_id     = aws_subnet.public_subnet_2.id
+  tags = {
+    Name = "my_NAT_gateway_2"
   }
  }
 
 
-# создаю ACL правило для Load Balancer, поскольку я исполюзую тип "network",
-# который не поддерживает security groups
+# Создание рут-таблиц для прайват подсетей и установка ассоциации "рут таблица-подсеть" 
 
-resource "aws_network_acl" "nlb_acl" {
+
+
+# Создание route table для private subnet 1
+resource "aws_route_table" "private_route_table_1" {
   vpc_id = aws_vpc.my_vpc.id
-  subnet_ids      = [aws_subnet.public_subnet.id]
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.my_nat_1.id
+  }
+  tags = {
+    Name = "private-root-table_1"
+  }
 }
 
-# для вхощего трафика
-
-resource "aws_network_acl_rule" "allow_http_ingress" {
-  network_acl_id = aws_network_acl.nlb_acl.id
-  rule_number    = 100
-  protocol       = "tcp"
-  rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-  from_port      = 80
-  to_port        = 80
-  egress         = false
- # subnet_id      = aws_subnet.public_subnet.id
- # subnet_ids = [
- #   aws_subnet.public_subnet.id
- #   ]
+# Присоединение private subnet1 к private route table1
+resource "aws_route_table_association" "private_subnet_association_1" {
+  subnet_id      = aws_subnet.private_subnet_1.id
+  route_table_id = aws_route_table.private_route_table_1.id
 }
 
-# для исходящего трафика
-
-resource "aws_network_acl_rule" "allow_http_egress" {
-  network_acl_id = aws_network_acl.nlb_acl.id
-  rule_number    = 100
-  protocol       = "tcp"
-  rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-  from_port      = 80
-  to_port        = 80
-  egress         = true
- # subnet_id      = aws_subnet.public_subnet.id
- # subnet_ids = [
- #   aws_subnet.public_subnet.id
- #   ]
-}
-
-# ACL для частной сети
-
-resource "aws_network_acl" "backend_acl" {
+# Создание route table для private subnet 2
+resource "aws_route_table" "private_route_table_2" {
   vpc_id = aws_vpc.my_vpc.id
-  subnet_ids      = [aws_subnet.private_subnet.id]
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.my_nat_2.id
+  }
+  tags = {
+    Name = "private-root-table_2"
+  }
 }
 
-# для вхощего трафика
-
-resource "aws_network_acl_rule" "allow_http_ingress_backend" {
-  network_acl_id = aws_network_acl.backend_acl.id
-  rule_number    = 100
-  protocol       = "tcp"
-  rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-  from_port      = 80
-  to_port        = 80
-  egress         = false
- # subnet_id      = aws_subnet.public_subnet.id
- # subnet_ids = [
- #   aws_subnet.public_subnet.id
- #   ]
-}
-
-resource "aws_network_acl_rule" "allow_http_egress_backend" {
-  network_acl_id = aws_network_acl.backend_acl.id
-  rule_number    = 100
-  protocol       = "tcp"
-  rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-  from_port      = 80
-  to_port        = 80
-  egress         = true
- # subnet_id      = aws_subnet.public_subnet.id
- # subnet_ids = [
- #   aws_subnet.public_subnet.id
- #   ]
+# Присоединение private subnet2 к private route table2
+resource "aws_route_table_association" "private_subnet_association_2" {
+  subnet_id      = aws_subnet.private_subnet_2.id
+  route_table_id = aws_route_table.private_route_table_2.id
 }
 
 
-# Создаем Network Load Balancer
+
+
+
+
+
+
+
+# Создаем Application Load Balancer
 
 resource "aws_lb" "web" {
   name               = "my-load-balancer"
   internal           = false
-  load_balancer_type = "network"
- # subnets            = [aws_subnet.public_subnet.id]
+  load_balancer_type = "application"
+  subnets            = [aws_subnet.public_subnet_1.id,aws_subnet.public_subnet_2.id]
+  security_groups    = ["${aws_security_group.lb.id}"] # указывает security group, в которую входит LB
   
-  
-  subnet_mapping { # размещает беленсер в публичной подсети
-    subnet_id = aws_subnet.public_subnet.id
-    }
-
   tags = {
     Name = "my-load-balancer"
   }
@@ -207,7 +190,7 @@ resource "aws_lb" "web" {
 resource "aws_lb_listener" "web" {
   load_balancer_arn = "${aws_lb.web.arn}" # указать ЛБ 
   port              = 80
-  protocol          = "TCP"
+  protocol          = "HTTP"
 
   default_action {
     target_group_arn = "${aws_lb_target_group.web.arn}" # указывает таргет-группу, которой будет направлен трафик с ЛБ
@@ -216,26 +199,26 @@ resource "aws_lb_listener" "web" {
 }
 
 
-# target group для лоуд беленсера, в которую будут входить машины для балансировки
+#target group для лоуд беленсера, в которую будут входить машины для балансировки
 
 resource "aws_lb_target_group" "web" {
   name     = "my-target-group"
+  depends_on = ["aws_vps.my_vpc"]
   port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
-  protocol = "TCP"
+  protocol = "HTTP"
   
   vpc_id = aws_vpc.my_vpc.id
-  target_type = "ip"
+  #target_type = "instance"
 
   health_check {
     enabled             = true
-    interval            = 11
-    #path                = "/"
+    interval            = 30
+    path                = "/"
     port                = 80
-    protocol            = "TCP"
-    timeout             = 10
+    protocol            = "HTTP"
+    timeout             = 20
     healthy_threshold   = 2
-    unhealthy_threshold = 5
-    
+    unhealthy_threshold = 2
    }
 
   tags = {
@@ -243,62 +226,95 @@ resource "aws_lb_target_group" "web" {
   }
 }
 
-
-# тут будет указано, какой ЕС2 будет входить в target group, связанную с лоад беленсером
-resource "aws_lb_target_group_attachment" "web" {
-  target_group_arn = "${aws_lb_target_group.web.arn}"
-  target_id        = aws_instance.ec2_instance.private_ip
-  port             = 80
-}
-
-
-
-# создание EC2
-
-resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0aa5fa88fa2ec19dc" # latest Ubuntu 20.04 LTS HVM EBS
-  instance_type = "t3.micro"
-  #availability_zone = "us-west-2b"
-  subnet_id     = aws_subnet.private_subnet.id
-  #availability_zone = aws_subnet.private_subnet.availability_zone # EC2 в данном случае должен быть в одной зоне с NLB
-  tags = {
-    Name = "My-EC2 Instance"
-  }
-
-  # Security Group allowing HTTP traffic from NLB
-  security_groups = [aws_security_group.allow_http_for_ec2.id]
-  depends_on = [
-    aws_lb.web,
-    aws_lb_target_group.web
-    ]
-}
-
-# Security Group for EC2 allowing HTTP traffic from NLB
-resource "aws_security_group" "allow_http_for_ec2" {
-  name_prefix = "allow-http"
-
-  /* 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "HTTP"
-    cidr_blocks = [aws_subnet.public_subnet.cidr_block]
-  }
-*/
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "TCP"
-    cidr_blocks = [aws_subnet.public_subnet.cidr_block]
-    description = "Allow inbound HTTP traffic"
-  }
-
-  egress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "TCP"
-    cidr_blocks = [aws_subnet.public_subnet.cidr_block]
-  }
-
+# Создаем Security Group для ALB
+resource "aws_security_group" "lb" {
+  
+  name = "lb-security_group"
   vpc_id = aws_vpc.my_vpc.id
+
+   ingress {
+   from_port = 80
+   to_port = 80
+   protocol = "tcp"
+   cidr_blocks = ["0.0.0.0/0"]
+   }
+
+   egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+   tags = {
+    Name = "lb-security_group"
+  }
+ }
+
+# описание инстанса, который будет находиться в autosсaling group 
+resource "aws_launch_configuration" "instance_template" {
+  name_prefix   = "server_config"
+  image_id      = "ami-0aa5fa88fa2ec19dc"
+  instance_type = "t3.micro"
+  security_groups = ["${aws_security_group.webserver_sg.id}"] # создать!!!!!!
+  
+  
+  lifecycle {
+        create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
+     }
+    
 }
+
+# создание сек"юрити - группы для бекенда
+
+resource "aws_security_group" "webserver_sg" {
+    name        = "backend_sg"
+    vpc_id = aws_vpc.my_vpc.id
+    ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      description = "HTTP"
+      cidr_blocks = ["0.0.0.0/0"]
+     }
+    ingress {
+      from_port   = 22 # для ансибла и вообще для доступа
+      to_port     = 22
+      protocol    = "tcp"
+      description = "HTTP"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      
+    }
+    tags = {
+      Name = "backend_sg" 
+      
+    }
+  }
+
+  # Create Auto Scaling Group
+resource "aws_autoscaling_group" "backend_scale_grp" {
+  name               = "backend-scale-group"
+  desired_capacity   = 1
+  max_size           = 1
+  min_size           = 1
+  force_delete       = true #удаляет инстансы с удаление ASG
+  depends_on         = ["aws_lb.web"]#сначала создать беленсер
+  #целевые группы, которые будут использоваться ALB
+  target_group_arns  =  ["${aws_lb_target_group.web.arn}"] 
+  health_check_type  = "EC2"
+  launch_configuration = aws_launch_configuration.instance_template.name
+  vpc_zone_identifier = ["${aws_subnet.private_subnet_1.id}","${aws_subnet.private_subnet_2.id}"]
+  
+ tag {
+       key                 = "Name"
+       value               = "back-scale-grp"
+       propagate_at_launch = true
+    }
+}
+
