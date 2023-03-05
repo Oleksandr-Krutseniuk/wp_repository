@@ -197,11 +197,6 @@ resource "aws_lb" "web" {
     subnet_id = aws_subnet.public_subnet.id
     }
 
-  subnet_mapping { # размещает беленсер в публичной подсети
-    subnet_id = aws_subnet.private_subnet.id
-    }
-
-
   tags = {
     Name = "my-load-balancer"
   }
