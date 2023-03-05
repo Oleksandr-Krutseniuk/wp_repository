@@ -192,7 +192,7 @@ resource "aws_lb_target_group" "web" {
     interval            = 30
     path                = "/"
     port                = 80
-    protocol            = "TCP"
+    #protocol            = "TCP"
     timeout             = 20
     healthy_threshold   = 2
     unhealthy_threshold = 2
