@@ -249,7 +249,7 @@ resource "aws_launch_configuration" "instance_template" {
   image_id      = "ami-0aa5fa88fa2ec19dc"
   instance_type = "t3.micro"
   security_groups = ["${aws_security_group.webserver_sg.id}"] # создать!!!!!!
-  key_name = "aws_ssh_key"
+  key_name = "sasha_kr_aws_ec2"
   
   lifecycle {
         create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
