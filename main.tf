@@ -235,6 +235,7 @@ resource "aws_lb_target_group" "web" {
     timeout             = 10
     healthy_threshold   = 2
     unhealthy_threshold = 5
+    health_check_type  = "EC2"
    }
 
   tags = {
