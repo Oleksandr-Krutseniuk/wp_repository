@@ -296,7 +296,7 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
   max_size           = 1
   min_size           = 1
   force_delete       = true #удаляет инстансы с удаление ASG
-  depends_on         = ["aws_lb.web"]#сначала создать беленсер
+  depends_on         = [aws_lb.web]#сначала создать беленсер
   #целевые группы, которые будут использоваться ALB
   target_group_arns  =  ["${aws_lb_target_group.web.arn}"] 
   health_check_type  = "EC2"
