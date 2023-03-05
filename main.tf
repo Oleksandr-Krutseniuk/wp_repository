@@ -66,9 +66,9 @@ resource "aws_subnet" "private_subnet" {
 resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.my_vpc.id
   route {
-    destination_cidr_block = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.my_nat.id
-    target         = aws_nat_gateway.my_nat.id
+    
   }
   tags = {
     Name = "private-RT"
