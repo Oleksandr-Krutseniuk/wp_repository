@@ -192,7 +192,7 @@ resource "aws_lb_target_group" "web" {
     interval            = 30
     path                = "/"
     port                = 80
-    protocol            = "HTTP"
+    protocol            = "TCP"
     timeout             = 20
     healthy_threshold   = 2
     unhealthy_threshold = 2
@@ -240,7 +240,7 @@ resource "aws_security_group" "allow_http_for_ec2" {
   ingress {
     from_port   = 80
     to_port     = 80
-    protocol    = "HTTP"
+    protocol    = "TCP"
     cidr_blocks = [aws_subnet.public_subnet.cidr_block]
   }
 
