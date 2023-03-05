@@ -59,7 +59,7 @@ resource "aws_route_table_association" "public_subnet_association" {
 resource "aws_subnet" "private_subnet" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.2.0/24"
-  availability_zone = aws_subnet.public_subnet.availability_zone
+  availability_zone = aws_subnet.public_subnet.availability_zone # В этой зоне будет бекенд NLB и он должен находиться в одной с NLB зоне 
   tags = {
     Name = "Private-Subnet"
   }
@@ -240,7 +240,7 @@ resource "aws_security_group" "allow_http_for_ec2" {
   ingress {
     from_port   = 80
     to_port     = 80
-    protocol    = "tcp"
+    protocol    = "HTTP"
     cidr_blocks = [aws_subnet.public_subnet.cidr_block]
   }
 
