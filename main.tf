@@ -182,7 +182,7 @@ resource "aws_lb_listener" "web" {
 resource "aws_lb_target_group" "web" {
   name     = "my-target-group"
   port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
-  protocol = "TCP"
+  #protocol = "TCP"
   
   vpc_id = aws_vpc.my_vpc.id
   target_type = "ip"
