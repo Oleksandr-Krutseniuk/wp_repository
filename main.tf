@@ -228,11 +228,11 @@ resource "aws_lb_target_group" "web" {
 
   health_check {
     enabled             = true
-    interval            = 10
+    interval            = 11
     #path                = "/"
     port                = 80
     protocol            = "TCP"
-    timeout             = 20
+    timeout             = 10
     healthy_threshold   = 2
     unhealthy_threshold = 5
    }
