@@ -182,7 +182,7 @@ resource "aws_lb_listener" "web" {
 resource "aws_lb_target_group" "web" {
   name     = "my-target-group"
   port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
-  #protocol = "TCP"
+  protocol = "TCP"
   
   vpc_id = aws_vpc.my_vpc.id
   target_type = "ip"
@@ -237,13 +237,14 @@ resource "aws_instance" "ec2_instance" {
 resource "aws_security_group" "allow_http_for_ec2" {
   name_prefix = "allow-http"
 
+  /* 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "HTTP"
     cidr_blocks = [aws_subnet.public_subnet.cidr_block]
   }
-
+*/
   ingress {
     from_port   = 80
     to_port     = 80
