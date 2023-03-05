@@ -164,13 +164,6 @@ resource "aws_route_table_association" "private_subnet_association_2" {
 }
 
 
-
-
-
-
-
-
-
 # Создаем Application Load Balancer
 
 resource "aws_lb" "web" {
@@ -203,10 +196,9 @@ resource "aws_lb_listener" "web" {
 
 resource "aws_lb_target_group" "web" {
   name     = "my-target-group"
-  depends_on = ["aws_vps.my_vpc"]
+  depends_on = ["aws_vpc.my_vpc"]
   port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
   protocol = "HTTP"
-  
   vpc_id = aws_vpc.my_vpc.id
   #target_type = "instance"
 
