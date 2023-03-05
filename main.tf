@@ -62,7 +62,7 @@ resource "aws_route_table_association" "public_subnet_association_1" {
 
 # Присоединение public subnet2 к route table
 resource "aws_route_table_association" "public_subnet_association_2" {
-  subnet_id      = aws_subnet.public_subnet_association_2.id
+  subnet_id      = aws_subnet.public_subnet_2.id
   route_table_id = aws_route_table.public_route_table.id
 }
 
@@ -98,7 +98,7 @@ resource "aws_eip" "my_eip_1" {
 
 # Создание NAT gateway 1
 resource "aws_nat_gateway" "my_nat_1" {
-  allocation_id = aws_eip.my_eip.id
+  allocation_id = aws_eip.my_eip_1.id
   subnet_id     = aws_subnet.public_subnet_1.id
   tags = {
     Name = "my_NAT_gateway_1"
@@ -115,7 +115,7 @@ resource "aws_eip" "my_eip_2" {
 
 # Создание NAT gateway 2
 resource "aws_nat_gateway" "my_nat_2" {
-  allocation_id = aws_eip.my_eip.id
+  allocation_id = aws_eip.my_eip_2.id
   subnet_id     = aws_subnet.public_subnet_2.id
   tags = {
     Name = "my_NAT_gateway_2"
