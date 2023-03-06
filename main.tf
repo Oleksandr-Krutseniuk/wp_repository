@@ -270,6 +270,7 @@ resource "aws_launch_configuration" "instance_template" {
   lifecycle {
         create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
      }
+   user_data = filebase64("${path.module}/init_webserver.sh")  
     
 }
 
