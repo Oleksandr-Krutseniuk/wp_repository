@@ -24,8 +24,8 @@ resource "aws_internet_gateway" "my_igw" {
 
 # Создание публичной подсети1
 resource "aws_subnet" "public_subnet_1" {
-  vpc_id                  = aws_vpc.my_vpc.id
-  cidr_block              = "10.0.1.0/24"
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true # для получения паблик айпи хостами сети
   tags = {
     Name = "Public-Subnet_1"
@@ -34,8 +34,8 @@ resource "aws_subnet" "public_subnet_1" {
 
 # Создание публичной подсети2
 resource "aws_subnet" "public_subnet_2" {
-  vpc_id                  = aws_vpc.my_vpc.id
-  cidr_block              = "10.0.2.0/24"
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.2.0/24"
   map_public_ip_on_launch = true
   tags = {
     Name = "Public-Subnet_2"
@@ -68,20 +68,20 @@ resource "aws_route_table_association" "public_subnet_association_2" {
 
 # Создание приватной подсети1
 resource "aws_subnet" "private_subnet_1" {
-  vpc_id            = aws_vpc.my_vpc.id
-  cidr_block        = "10.0.3.0/24"
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.3.0/24"
   availability_zone = aws_subnet.public_subnet_1.availability_zone
-  tags = {
+   tags = {
     Name = "Private-Subnet_1"
   }
 }
 
 # Создание приватной подсети2
 resource "aws_subnet" "private_subnet_2" {
-  vpc_id            = aws_vpc.my_vpc.id
-  cidr_block        = "10.0.4.0/24"
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.4.0/24"
   availability_zone = aws_subnet.public_subnet_2.availability_zone
-  tags = {
+   tags = {
     Name = "Private-Subnet_2"
   }
 }
@@ -103,7 +103,7 @@ resource "aws_nat_gateway" "my_nat_1" {
   tags = {
     Name = "my_NAT_gateway_1"
   }
-}
+ }
 
 # Создание elastic IP для NAT2
 resource "aws_eip" "my_eip_2" {
@@ -120,7 +120,7 @@ resource "aws_nat_gateway" "my_nat_2" {
   tags = {
     Name = "my_NAT_gateway_2"
   }
-}
+ }
 
 
 # Создание рут-таблиц для прайват подсетей и установка ассоциации "рут таблица-подсеть" 
@@ -131,7 +131,7 @@ resource "aws_nat_gateway" "my_nat_2" {
 resource "aws_route_table" "private_route_table_1" {
   vpc_id = aws_vpc.my_vpc.id
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.my_nat_1.id
   }
   tags = {
@@ -149,7 +149,7 @@ resource "aws_route_table_association" "private_subnet_association_1" {
 resource "aws_route_table" "private_route_table_2" {
   vpc_id = aws_vpc.my_vpc.id
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.my_nat_2.id
   }
   tags = {
@@ -170,9 +170,9 @@ resource "aws_lb" "web" {
   name               = "my-load-balancer"
   internal           = false
   load_balancer_type = "application"
-  subnets            = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+  subnets            = [aws_subnet.public_subnet_1.id,aws_subnet.public_subnet_2.id]
   security_groups    = ["${aws_security_group.lb.id}"] # указывает security group, в которую входит LB
-
+  
   tags = {
     Name = "my-load-balancer"
   }
@@ -181,12 +181,12 @@ resource "aws_lb" "web" {
 # эта штука определяет порт, который слушает лоуд беленсер
 
 resource "aws_lb_listener" "web" {
-  load_balancer_arn = aws_lb.web.arn # указать ЛБ 
+  load_balancer_arn = "${aws_lb.web.arn}" # указать ЛБ 
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = aws_lb_target_group.web.arn # указывает таргет-группу, которой будет направлен трафик с ЛБ
+    target_group_arn = "${aws_lb_target_group.web.arn}" # указывает таргет-группу, которой будет направлен трафик с ЛБ
     type             = "forward"
   }
 }
@@ -195,12 +195,12 @@ resource "aws_lb_listener" "web" {
 #target group для лоуд беленсера, в которую будут входить машины для балансировки
 
 resource "aws_lb_target_group" "web" {
-  name       = "my-target-group"
+  name     = "my-target-group"
   depends_on = [aws_vpc.my_vpc]
-  port       = 80 # порт, который открыт на бэк-энде для получение трафика от LB
-  protocol   = "HTTP"
-  vpc_id     = aws_vpc.my_vpc.id
-
+  port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
+  protocol = "HTTP"
+  vpc_id = aws_vpc.my_vpc.id
+  
 
   health_check {
     enabled             = true
@@ -211,7 +211,7 @@ resource "aws_lb_target_group" "web" {
     timeout             = 20
     healthy_threshold   = 2
     unhealthy_threshold = 2
-  }
+   }
 
   tags = {
     Name = "my_lb_target_group"
@@ -220,113 +220,194 @@ resource "aws_lb_target_group" "web" {
 
 # Создаем Security Group для ALB
 resource "aws_security_group" "lb" {
-
-  name   = "lb-security_group"
+  
+  name = "lb-security_group"
   vpc_id = aws_vpc.my_vpc.id
 
 
-  ingress {
-    from_port   = 22 # для ансибла и вообще для доступа
-    to_port     = 22
-    protocol    = "tcp"
-    description = "HTTP"
+ingress {
+  from_port   = 22 # для ансибла и вообще для доступа
+  to_port     = 22
+  protocol    = "tcp"
+  description = "HTTP"
+  cidr_blocks = ["0.0.0.0/0"]
+    }
+
+
+ingress {
+   from_port = 80
+   to_port = 80
+   protocol = "tcp"
+   cidr_blocks = ["0.0.0.0/0"]
+   }
+
+egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
+tags = {
     Name = "lb-security_group"
   }
-}
+ }
 
 # описание инстанса, который будет находиться в autosсaling group 
 resource "aws_launch_configuration" "instance_template" {
-  name_prefix     = "server_config"
-  image_id        = "ami-0aa5fa88fa2ec19dc"
-  instance_type   = "t3.micro"
-  security_groups = ["${aws_security_group.webserver_sg.id}"]
-  key_name        = "sasha_kr_aws_ec2" # имя ssh ключа
-
+  name_prefix   = "server_config"
+  image_id      = "ami-0aa5fa88fa2ec19dc"
+  instance_type = "t3.micro"
+  security_groups = ["${aws_security_group.webserver_sg.id}"] 
+  key_name = "sasha_kr_aws_ec2" # имя ssh ключа
+ 
 
 
   lifecycle {
-    create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
-  }
-
+        create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
+     }
+   
   ebs_block_device {
-    device_name = "/dev/sdf"
-    volume_type = "gp2"
-    volume_size = 1
-    encrypted   = true
-  }
-
+            device_name = "/dev/sdf"
+            volume_type = "gp2"
+            volume_size = 1
+            encrypted   = true
+        }
+    
 }
 
 # создание сек'юрити - группы для бекенда
 
 resource "aws_security_group" "webserver_sg" {
-  name   = "backend_sg"
-  vpc_id = aws_vpc.my_vpc.id
+    name        = "backend_sg"
+    vpc_id = aws_vpc.my_vpc.id
+
+    ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      description = "HTTP"
+      cidr_blocks = ["0.0.0.0/0"]
+     }
+
+    ingress {
+      from_port   = 22 # для ансибла и вообще для доступа
+      to_port     = 22
+      protocol    = "tcp"
+      description = "HTTP"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    egress {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+    
+    }
+
+    # порты для RDS
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 3306
+    to_port     = 3306
     protocol    = "tcp"
-    description = "HTTP"
     cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.wordpress_rds_sg.id] # ограничить правило группой безопасности RDS
   }
 
-  ingress {
-    from_port   = 22 # для ансибла и вообще для доступа
-    to_port     = 22
+
+  egress {
+    from_port   = 3306
+    to_port     = 3306
     protocol    = "tcp"
-    description = "HTTP"
     cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.wordpress_rds_sg.id]
   }
+
+    tags = {
+      Name = "backend_sg" 
+      
+    }
+  }
+
+  # Create Auto Scaling Group
+resource "aws_autoscaling_group" "backend_scale_grp" {
+  name               = "backend-scale-group"
+  desired_capacity   = 1
+  max_size           = 2
+  min_size           = 1
+  force_delete       = true #удаляет инстансы с удаление ASG
+  depends_on         = [aws_lb.web]#сначала создать беленсер
+  target_group_arns  =  ["${aws_lb_target_group.web.arn}"] #целевые группы, которые будут использоваться ALB
+  health_check_type  = "EC2"
+  launch_configuration = aws_launch_configuration.instance_template.name
+  vpc_zone_identifier = ["${aws_subnet.private_subnet_1.id}","${aws_subnet.private_subnet_2.id}"]
+  
+ tag {
+       key                 = "Name"
+       value               = "back-scale-grp"
+       propagate_at_launch = true
+    }
+}
+
+# создание RDS
+
+# создание группы сетей, с которыми будет работать RDS 
+resource "aws_db_subnet_group" "backend_db_subnet_group" {
+  name        = "backend-db-subnet-group"
+ 
+  subnet_ids = [
+    aws_subnet.private_subnet_1.id,
+    aws_subnet.private_subnet_2.id,
+    
+  ]
+}
+
+# создание инстанса базы данных
+
+resource "aws_db_instance" "wordpress_db" {
+  allocated_storage    = 2
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "8.0"
+  instance_class       = "db.t3.micro"
+  name                 = "wordpress-db"
+  username             = "admin"
+  password             = "password"
+  parameter_group_name = "default.mysql8.0"
+  db_subnet_group_name = aws_db_subnet_group.backend_db_subnet_group.name
+
+  vpc_security_group_ids = [aws_security_group.wordpress_rds_sg.id]
+
+  tags = {
+    Name = "wordpress-db"
+  }
+}
+
+# сек группа для РДС
+
+resource "aws_security_group" "wordpress_rds_sg" {
+  name_prefix = "wordpress-rds-sg"
+  vpc_id      = aws_vpc.wordpress_vpc.id
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = [aws_security_group.webserver_sg.id] # чтобы правило работало только для группы безопасности серверов 
+  }
+  
+  engress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = [aws_security_group.webserver_sg.id] # чтобы правило работало только для группы безопасности серверов 
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-
-  }
-  tags = {
-    Name = "backend_sg"
-
   }
 }
-
-# Create Auto Scaling Group
-resource "aws_autoscaling_group" "backend_scale_grp" {
-  name                 = "backend-scale-group"
-  desired_capacity     = 1
-  max_size             = 2
-  min_size             = 1
-  force_delete         = true                               #удаляет инстансы с удаление ASG
-  depends_on           = [aws_lb.web]                       #сначала создать беленсер
-  target_group_arns    = ["${aws_lb_target_group.web.arn}"] #целевые группы, которые будут использоваться ALB
-  health_check_type    = "EC2"
-  launch_configuration = aws_launch_configuration.instance_template.name
-  vpc_zone_identifier  = ["${aws_subnet.private_subnet_1.id}", "${aws_subnet.private_subnet_2.id}"]
-
-  tag {
-    key                 = "Name"
-    value               = "back-scale-grp"
-    propagate_at_launch = true
-  }
-}
-
