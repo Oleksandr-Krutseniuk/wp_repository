@@ -294,7 +294,7 @@ resource "aws_launch_configuration" "instance_template" {
 resource "aws_security_group" "webserver_sg" {
     name        = "backend_sg"
     vpc_id = aws_vpc.my_vpc.id
-    depends_on = [aws_security_group.wordpress_rds_sg]
+    #depends_on = [aws_security_group.wordpress_rds_sg]
     ingress {
       from_port   = 80
       to_port     = 80
