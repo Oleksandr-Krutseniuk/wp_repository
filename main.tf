@@ -200,7 +200,7 @@ resource "aws_lb_target_group" "web" {
   port     = 80 # порт, который открыт на бэк-энде для получение трафика от LB
   protocol = "HTTP"
   vpc_id = aws_vpc.my_vpc.id
-  #target_type = "instance"
+  
 
   health_check {
     enabled             = true
@@ -248,7 +248,7 @@ resource "aws_launch_configuration" "instance_template" {
   name_prefix   = "server_config"
   image_id      = "ami-0aa5fa88fa2ec19dc"
   instance_type = "t3.micro"
-  security_groups = ["${aws_security_group.webserver_sg.id}"] # создать!!!!!!
+  security_groups = ["${aws_security_group.webserver_sg.id}"] 
   key_name = "sasha_kr_aws_ec2"
   user_data = <<-EOF
               #!/bin/bash
