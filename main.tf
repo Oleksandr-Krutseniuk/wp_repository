@@ -275,6 +275,16 @@ resource "aws_security_group" "webserver_sg" {
       description = "HTTP"
       cidr_blocks = ["0.0.0.0/0"]
      }
+
+    ingress {
+      from_port   = 8888 # для tunnel
+      to_port     = 8888
+      protocol    = "tcp"
+      description = "tunnel"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+
     ingress {
       from_port   = 22 # для ансибла и вообще для доступа
       to_port     = 22
