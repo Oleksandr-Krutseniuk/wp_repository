@@ -224,6 +224,16 @@ resource "aws_security_group" "lb" {
   name = "lb-security_group"
   vpc_id = aws_vpc.my_vpc.id
 
+
+  ingress {
+      from_port   = 22 # для ансибла и вообще для доступа
+      to_port     = 22
+      protocol    = "tcp"
+      description = "HTTP"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+
    ingress {
    from_port = 80
    to_port = 80
