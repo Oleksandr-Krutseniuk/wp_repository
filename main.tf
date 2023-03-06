@@ -294,7 +294,7 @@ resource "aws_launch_configuration" "instance_template" {
 resource "aws_security_group" "webserver_sg" {
     name        = "backend_sg"
     vpc_id = aws_vpc.my_vpc.id
-    depends_on = [aws_security_group.wordpress_rds_sg]
+    #depends_on = [aws_security_group.wordpress_rds_sg]
     ingress {
       from_port   = 80
       to_port     = 80
@@ -324,8 +324,9 @@ resource "aws_security_group" "webserver_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    security_groups = [aws_security_group.wordpress_rds_sg.id] # ограничить правило группой безопасности RDS
+    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    #cidr_blocks = ["0.0.0.0/0"]
+    #security_groups = [aws_security_group.wordpress_rds_sg.id] # ограничить правило группой безопасности RDS
   }
 
 
@@ -333,8 +334,9 @@ resource "aws_security_group" "webserver_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    security_groups = [aws_security_group.wordpress_rds_sg.id]
+    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    #cidr_blocks = ["0.0.0.0/0"]
+    #security_groups = [aws_security_group.wordpress_rds_sg.id]
   }
 
     tags = {
@@ -407,20 +409,18 @@ resource "aws_security_group" "wordpress_rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    security_groups = [aws_security_group.webserver_sg.id] # чтобы правило работало только для группы безопасности серверов 
+    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    
   }
   
-  engress {
+  egress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    security_groups = [aws_security_group.webserver_sg.id] # чтобы правило работало только для группы безопасности серверов 
+    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  
   }
 }
