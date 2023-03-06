@@ -1,0 +1,7 @@
+This code creates:
+
+● VPC with subnets (private and public)
+● NAT and Internet gateways
+● Network load balancer and target group
+● EC2 instances
+● Security groups, route tables, and other required resources
