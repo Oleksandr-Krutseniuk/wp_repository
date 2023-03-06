@@ -5,6 +5,14 @@ provider "aws" {
   region = "us-west-2"
 }
 
+backend "s3" {
+
+    bucket = "sashaa-tf-state-bucket"
+    key    = "sashaa-tf-state-key"
+    region = "us-west-2"
+    }
+
+
 # create VPC
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -350,7 +358,7 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
     }
 }
 
-# создание RDS
+# создание RDS 
 
 # создание группы сетей, с которыми будет работать RDS 
 resource "aws_db_subnet_group" "backend_db_subnet_group" {
