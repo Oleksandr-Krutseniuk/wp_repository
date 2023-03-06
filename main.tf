@@ -1,16 +1,21 @@
 
-
-# establish provider to use TF with AWS
-provider "aws" {
-  region = "us-west-2"
-}
-
+terraform {
 backend "s3" {
 
     bucket = "sashaa-tf-state-bucket"
     key    = "sashaa-tf-state-key"
     region = "us-west-2"
     }
+  }
+
+
+
+# establish provider to use TF with AWS
+provider "aws" {
+  region = "us-west-2"
+}
+
+
 
 
 # create VPC
