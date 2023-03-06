@@ -324,7 +324,7 @@ resource "aws_security_group" "webserver_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
     #cidr_blocks = ["0.0.0.0/0"]
     #security_groups = [aws_security_group.wordpress_rds_sg.id] # ограничить правило группой безопасности RDS
   }
@@ -334,7 +334,7 @@ resource "aws_security_group" "webserver_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
     #cidr_blocks = ["0.0.0.0/0"]
     #security_groups = [aws_security_group.wordpress_rds_sg.id]
   }
@@ -409,7 +409,7 @@ resource "aws_security_group" "wordpress_rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
     
   }
   
@@ -417,7 +417,7 @@ resource "aws_security_group" "wordpress_rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.eprivate_subnet_1.cidr_block,aws_subnet.eprivate_subnet_1.cidr_block]
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
     
   }
 
