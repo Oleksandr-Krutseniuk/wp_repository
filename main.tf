@@ -234,21 +234,21 @@ resource "aws_security_group" "lb" {
     }
 
 
-   ingress {
+ingress {
    from_port = 80
    to_port = 80
    protocol = "tcp"
    cidr_blocks = ["0.0.0.0/0"]
    }
 
-   egress {
+egress {
     from_port = 0
     to_port = 0
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-   tags = {
+tags = {
     Name = "lb-security_group"
   }
  }
@@ -260,13 +260,7 @@ resource "aws_launch_configuration" "instance_template" {
   instance_type = "t3.micro"
   security_groups = ["${aws_security_group.webserver_sg.id}"] 
   key_name = "sasha_kr_aws_ec2"
-  #user_data = <<-EOF
-              #!/bin/bash
-   #           useradd -m testuser
-    #          usermod -aG sudo testuser
-     #         echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/testuser
-      #        EOF
-  
+ 
   lifecycle {
         create_before_destroy = true # при изменении ресурса пересоздает его "с нуля"
      }
@@ -274,7 +268,7 @@ resource "aws_launch_configuration" "instance_template" {
     
 }
 
-# создание сек"юрити - группы для бекенда
+# создание сек'юрити - группы для бекенда
 
 resource "aws_security_group" "webserver_sg" {
     name        = "backend_sg"
@@ -286,15 +280,6 @@ resource "aws_security_group" "webserver_sg" {
       description = "HTTP"
       cidr_blocks = ["0.0.0.0/0"]
      }
-
-    ingress {
-      from_port   = 8888 # для tunnel
-      to_port     = 8888
-      protocol    = "tcp"
-      description = "tunnel"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-
 
     ingress {
       from_port   = 22 # для ансибла и вообще для доступа
@@ -324,8 +309,7 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
   min_size           = 1
   force_delete       = true #удаляет инстансы с удаление ASG
   depends_on         = [aws_lb.web]#сначала создать беленсер
-  #целевые группы, которые будут использоваться ALB
-  target_group_arns  =  ["${aws_lb_target_group.web.arn}"] 
+  target_group_arns  =  ["${aws_lb_target_group.web.arn}"] #целевые группы, которые будут использоваться ALB
   health_check_type  = "EC2"
   launch_configuration = aws_launch_configuration.instance_template.name
   vpc_zone_identifier = ["${aws_subnet.private_subnet_1.id}","${aws_subnet.private_subnet_2.id}"]
