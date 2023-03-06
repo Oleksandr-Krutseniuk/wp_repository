@@ -403,7 +403,7 @@ resource "aws_db_instance" "wordpress_db" {
 
 resource "aws_security_group" "wordpress_rds_sg" {
   name_prefix = "wordpress-rds-sg"
-  vpc_id      = aws_vpc.wordpress_vpc.id
+  vpc_id      = aws_vpc.my_vpc.id
   #depends_on = [aws_security_group.webserver_sg]
   ingress {
     from_port   = 3306
