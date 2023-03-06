@@ -381,7 +381,7 @@ resource "aws_db_subnet_group" "backend_db_subnet_group" {
 # создание инстанса базы данных
 
 resource "aws_db_instance" "wordpress_db" {
-  allocated_storage    = 2
+  allocated_storage    = 5
   storage_type         = "gp2"
   engine               = "mysql"
   engine_version       = "8.0"
