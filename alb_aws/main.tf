@@ -1,5 +1,5 @@
 
-# remote state file in S3 bucket.
+# remote state file in S3 bucket. bucket should exist before infrustructure deployment
 terraform {
 backend "s3" {
 
@@ -35,7 +35,7 @@ resource "aws_internet_gateway" "my_igw" {
 resource "aws_subnet" "public_subnet_1" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
-  map_public_ip_on_launch = true # для получения паблик айпи хостами сети
+  map_public_ip_on_launch = true # assigns public IP to the hosts upon creation
   tags = {
     Name = "Public-Subnet_1"
   }
@@ -51,7 +51,7 @@ resource "aws_subnet" "public_subnet_2" {
   }
 }
 
-# route table for public subnets.allows hosts from public subnets use gateway to internet
+# route table for public subnets.allows hosts from public subnets use gateway to communicate with hosts in internet
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.my_vpc.id
   route {
@@ -63,7 +63,7 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
-# Attach public subnet1 to route table
+# Attach public subnet1 to route table (makes route table active within a subnet)
 resource "aws_route_table_association" "public_subnet_association_1" {
   subnet_id      = aws_subnet.public_subnet_1.id
   route_table_id = aws_route_table.public_route_table.id
@@ -95,9 +95,9 @@ resource "aws_subnet" "private_subnet_2" {
   }
 }
 
-# create 2 EIP and 2 NAT.I need to establish connection from 2 private nets to 2 public - so I need 2 NATS. 
+# create 2 EIP and 2 NAT.I need to establish connection from 2 private nets to 2 public - so I need 2 NATs. 
 
-# elastic IP for NAT1
+# elastic IP for NAT1.when using public NAT EIP attachment to a NAT is mandatory. 
 resource "aws_eip" "my_eip_1" {
   vpc = true
   tags = {
@@ -133,7 +133,7 @@ resource "aws_nat_gateway" "my_nat_2" {
 
  
 # route tables for private subnets.there will be 2 tables because each private subnet is attached to a separate public subnet.
-# if I needed to attach private subnets to 1 public subnet - I would use 1 NAT and 1 root table 
+# if I needed to attach private subnets to 1 public subnet - I would use 1 NAT and 1 root table instead
 
 
 #  route table for private subnet 1
@@ -177,9 +177,9 @@ resource "aws_route_table_association" "private_subnet_association_2" {
 
 resource "aws_lb" "web" {
   name               = "my-load-balancer"
-  internal           = false
+  internal           = false # makes LB publicly accessible
   load_balancer_type = "application"
-  subnets            = [aws_subnet.public_subnet_1.id,aws_subnet.public_subnet_2.id]
+  subnets            = [aws_subnet.public_subnet_1.id,aws_subnet.public_subnet_2.id] # subnets linked with load balancer
   security_groups    = ["${aws_security_group.lb.id}"] # points to a security group for load balancer
   
   tags = {
@@ -255,16 +255,16 @@ tags = {
 # EC2 template for autosсaling group 
 resource "aws_launch_configuration" "instance_template" {
   name_prefix   = "server_config"
-  image_id      = "ami-0aa5fa88fa2ec19dc"
+  image_id      = "ami-0aa5fa88fa2ec19dc" # latest ubuntu
   instance_type = "t3.micro"
   security_groups = ["${aws_security_group.webserver_sg.id}"] # link to a security group for instances within autoscaling group
-  key_name = "sasha_kr_aws_ec2" # ssh key, which is previously created and would be put into a EC2 upon creation
+  key_name = "sasha_kr_aws_ec2" # ssh key, which is previously created and would be put into an EC2 upon creation
  
   lifecycle {
-        create_before_destroy = true # before changes are applied a new resourse is created.only after new is created the old one is deleted
-     }
+        create_before_destroy = true # before changes are applied a new resourse is created.
+     }                               # only after new one is created the old one is deleted
    
-  ebs_block_device {
+  ebs_block_device {                 # device to store data in case EC2 is stopped or crashed
             device_name = "/dev/sdf"
             volume_type = "gp2"
             volume_size = 1
@@ -297,7 +297,7 @@ resource "aws_security_group" "webserver_sg" {
     egress {
       from_port        = 0
       to_port          = 0
-      protocol         = "-1"
+      protocol         = "-1" # "all ports"
       cidr_blocks      = ["0.0.0.0/0"]
     
     }
@@ -308,7 +308,6 @@ resource "aws_security_group" "webserver_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    # restrict traffic exchange on 3306 within private subnets,where RDS is located
     cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block] 
   }
 
@@ -350,8 +349,8 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
 
 # RDS creation 
 
-# subnet group RDS is allowed to communicate with.subnet_ids field points to subnets where ec2 is set,which allows "ec2-RDS" communication
-resource "aws_db_subnet_group" "backend_db_subnet_group" {
+# subnet group RDS is allowed to communicate with.subnet_ids field points to subnets where ec2 is set,which allows ->
+resource "aws_db_subnet_group" "backend_db_subnet_group" {  # ---< "ec2-RDS" communication
   name        = "backend-db-subnet-group"
  
   subnet_ids = [

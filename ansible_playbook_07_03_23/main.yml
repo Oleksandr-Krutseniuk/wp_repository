@@ -1,0 +1,5 @@
+- hosts: all # performs playbook on all the hosths from inventory
+  become: true # increased privileges
+  roles:  # list of roles playbook consists of
+    - role: base
+    
