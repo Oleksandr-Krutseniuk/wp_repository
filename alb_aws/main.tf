@@ -259,7 +259,20 @@ resource "aws_launch_configuration" "instance_template" {
   instance_type = "t3.micro"
   security_groups = ["${aws_security_group.webserver_sg.id}"] # link to a security group for instances within autoscaling group
   key_name = "sasha_kr_aws_ec2" # ssh key, which is previously created and would be put into an EC2 upon creation
- 
+  
+# PROVISIONER TESTS
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update",
+      "sudo apt-get install -y apache2",
+      "sudo systemctl start apache2",
+      "sudo systemctl enable apache2"
+    ]
+  }
+
+
+
   lifecycle {
         create_before_destroy = true # before changes are applied a new resourse is created.
      }                               # only after new one is created the old one is deleted
@@ -286,7 +299,7 @@ resource "aws_security_group" "webserver_sg" {
       description = "HTTP"
       cidr_blocks = ["0.0.0.0/0"]
      }
-
+    
     ingress {
       from_port   = 22 
       to_port     = 22
