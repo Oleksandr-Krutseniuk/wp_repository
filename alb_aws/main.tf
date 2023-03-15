@@ -214,7 +214,7 @@ resource "aws_lb_target_group" "web" {
   health_check {
     enabled             = true
     interval            = 30
-    path                = "/"
+    path                = "/index.html"     #"/"
     port                = 80
     protocol            = "HTTP"
     timeout             = 20
