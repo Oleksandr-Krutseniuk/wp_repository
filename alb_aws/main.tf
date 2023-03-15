@@ -398,7 +398,7 @@ resource "aws_db_instance" "wordpress_db" {
 
 resource "aws_security_group" "wordpress_rds_sg" {
   name_prefix = "wordpress-rds-sg"
-  vpc_id      = aws_vpc.my_vpc.vpc_id
+  vpc_id      = aws_vpc.my_vpc.id
 
   # I used "cidr_blocks" field to allow traffic flow only within subnets where ec2 instances are located
 
