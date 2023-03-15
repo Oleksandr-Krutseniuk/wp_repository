@@ -261,18 +261,15 @@ resource "aws_launch_configuration" "instance_template" {
   key_name = "sasha_kr_aws_ec2" # ssh key, which is previously created and would be put into an EC2 upon creation
   
 # PROVISIONER TESTS
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt-get update
+              sudo apt-get install -y apache2
+              sudo systemctl start apache2
+              sudo systemctl enable apache2
+              EOF
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update",
-      "sudo apt-get install -y apache2",
-      "sudo systemctl start apache2",
-      "sudo systemctl enable apache2"
-    ]
-  }
-
-
-
+  
   lifecycle {
         create_before_destroy = true # before changes are applied a new resourse is created.
      }                               # only after new one is created the old one is deleted
@@ -286,7 +283,7 @@ resource "aws_launch_configuration" "instance_template" {
     
 }
 
-# security group for a backend servers
+# security group for the backend servers
 
 resource "aws_security_group" "webserver_sg" {
     name        = "backend_sg"
@@ -360,6 +357,7 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
     }
 }
 
+/*
 # RDS creation 
 
 # subnet group RDS is allowed to communicate with.subnet_ids field points to subnets where ec2 is set,which allows ->
