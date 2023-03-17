@@ -338,8 +338,8 @@ resource "aws_security_group" "webserver_sg" {
     to_port     = 3306
     protocol    = "tcp"
     # если cidr_blocks будут нужны - я их раскомментирую 
-    # cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
-    security_groups = ["${aws_security_group.wordpress_rds_sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
+    #security_groups = ["${aws_security_group.wordpress_rds_sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
   }
 
 
@@ -348,8 +348,8 @@ resource "aws_security_group" "webserver_sg" {
     to_port     = 3306
     protocol    = "tcp"
     # если cidr_blocks будут нужны - я их раскомментирую 
-    # cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
-    security_groups = ["${aws_security_group.wordpress_rds_sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
+    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block] # если трафик от РДС будет проходить публичную сеть, ее тоже нужно добавить
+    # security_groups = ["${aws_security_group.wordpress_rds_sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
     
   }
 
@@ -387,7 +387,7 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
 # subnet group RDS is allowed to communicate with.subnet_ids field points to subnets where ec2 is set,which allows -->
 resource "aws_db_subnet_group" "backend_db_subnet_group" {  # ---> "ec2-RDS" communication
   name        = "backend-db-subnet-group"
- 
+  
   subnet_ids = [
     aws_subnet.private_subnet_1.id, # private subnet1
     aws_subnet.private_subnet_2.id, # private subnet2
