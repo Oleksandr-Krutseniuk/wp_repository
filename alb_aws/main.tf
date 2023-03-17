@@ -216,7 +216,7 @@ resource "aws_lb_target_group" "web" {
   health_check {
     enabled             = true
     interval            = 30
-    path                = "/index.html"     #"/"
+    path                = "/"   # "/index.html" - это поле делало успешный хелс-чек для апача
     port                = 80
     protocol            = "HTTP"
     timeout             = 20
@@ -243,9 +243,9 @@ ingress {
    }
 
 egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
+    from_port = 80 # restrict egress to port 80 only
+    to_port = 80
+    protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -261,8 +261,9 @@ resource "aws_launch_configuration" "instance_template" {
   instance_type = "t3.micro"
   security_groups = ["${aws_security_group.webserver_sg.id}"] # link to a security group for instances within autoscaling group
   key_name = "sasha_kr_aws_ec2" # ssh key, which is previously created and would be put into an EC2 upon creation
-  
-# PROVISIONER TESTS
+
+ /* 
+# set up apache2. it would check whether a load balancer && backend works
   user_data = <<-EOF
               #!/bin/bash
               sudo apt-get update
@@ -270,7 +271,7 @@ resource "aws_launch_configuration" "instance_template" {
               sudo systemctl start apache2
               sudo systemctl enable apache2
               EOF
-
+*/
   
   lifecycle {
         create_before_destroy = true # before changes are applied a new resourse is created.
@@ -291,36 +292,54 @@ resource "aws_security_group" "webserver_sg" {
     name        = "backend_sg"
     vpc_id = aws_vpc.my_vpc.id
 
+    # порты для общения с лоад беленсером
     ingress {
       from_port   = 80
       to_port     = 80
-      protocol    = "tcp"
+      protocol    = "tcp" # потом попробовать сменить протокол на http, все же обмен будет проходить с http
       description = "HTTP"
-      cidr_blocks = ["0.0.0.0/0"]
-     }
+      # ограничу прием трафика по порту только из лоад беленсера. в поле "security_groups" указывается группа безопасности, 
+      # к участникам которой применяется данное правило безопасности 
+      security_groups = ["${aws_security_group.lb.id}"]
+     } 
+     
+    egress {
+      from_port        = 80
+      to_port          = 80
+      protocol         = "tcp" # потом попробовать сменить протокол на http, все же обмен будет проходить с http
+      # тоже самое делаю для исходящего, ЕС2 должны общаться по 80 только с лоад беленсером
+      security_groups = ["${aws_security_group.lb.id}"]
+    }
     
-    ingress {
+
+# порты для бастион хоста. он будет в одной из публичных сетей, так что cidr_blocks ограничим публичными сетями.
+  
+  # SSH будет происходить через бастион в публичной сети, так что ограничу диапазон публичной сетью
+    ingress { 
       from_port   = 22 
       to_port     = 22
       protocol    = "tcp"
       description = "HTTP"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-    egress {
-      from_port        = 0
-      to_port          = 0
-      protocol         = "-1" # "all ports"
-      cidr_blocks      = ["0.0.0.0/0"]
+      cidr_blocks = [aws_subnet.public_subnet_1.cidr_block,aws_subnet.public_subnet_2.cidr_block]
+    }  
     
-    }
+    egress { 
+      from_port   = 22 
+      to_port     = 22
+      protocol    = "tcp"
+      description = "HTTP"
+      cidr_blocks = [aws_subnet.public_subnet_1.cidr_block,aws_subnet.public_subnet_2.cidr_block]
+    } 
 
-    # ports for RDS
+# ports for RDS
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block] 
+    # если cidr_blocks будут нужны - я их раскомментирую 
+    # cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
+    security_groups = ["${aws_security_group.wordpress-rds-sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
   }
 
 
@@ -328,7 +347,9 @@ resource "aws_security_group" "webserver_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
+    # если cidr_blocks будут нужны - я их раскомментирую 
+    # cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
+    security_groups = ["${aws_security_group.wordpress-rds-sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
     
   }
 
@@ -346,11 +367,12 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
   max_size           = 2
   min_size           = 1
   force_delete       = true # when ASG is deleted related EC2s deleted as well
-  depends_on         = [aws_lb.web] 
-  target_group_arns  =  ["${aws_lb_target_group.web.arn}"] #target group attached to ALB
+  # depends_on         = [aws_lb.web] думаю что беленсер создастся и без autoscaling_group, просто будет неактивен, потому что эта autoscaling_group будет входит 
+  # в целевую группу лоад беленсера
+  target_group_arns  =  ["${aws_lb_target_group.web.arn}"] # target group attached to ALB and the group this autoscaling group is a member of
   health_check_type  = "EC2"
   launch_configuration = aws_launch_configuration.instance_template.name # ec2 configuration for instances withing autoscaling group
-  vpc_zone_identifier = ["${aws_subnet.private_subnet_1.id}","${aws_subnet.private_subnet_2.id}"] #subnets where ec2 would be created
+  vpc_zone_identifier = ["${aws_subnet.private_subnet_1.id}","${aws_subnet.private_subnet_2.id}"] # subnets where ec2 would be created
   
  tag {
        key                 = "Name"
@@ -359,11 +381,11 @@ resource "aws_autoscaling_group" "backend_scale_grp" {
     }
 }
 
-/*
+
 # RDS creation 
 
-# subnet group RDS is allowed to communicate with.subnet_ids field points to subnets where ec2 is set,which allows ->
-resource "aws_db_subnet_group" "backend_db_subnet_group" {  # ---< "ec2-RDS" communication
+# subnet group RDS is allowed to communicate with.subnet_ids field points to subnets where ec2 is set,which allows -->
+resource "aws_db_subnet_group" "backend_db_subnet_group" {  # ---> "ec2-RDS" communication
   name        = "backend-db-subnet-group"
  
   subnet_ids = [
@@ -381,9 +403,9 @@ resource "aws_db_instance" "wordpress_db" {
   engine               = "mysql"
   engine_version       = "8.0"
   instance_class       = "db.t3.micro"
-  db_name              = "******" #alphanumeric only is allowed
-  username             = "******"
-  password             = "******"
+  db_name              = "wordpress" # alphanumeric only is allowed
+  username             = "wordpress"
+  password             = "somewordpress"
   parameter_group_name = "default.mysql8.0"
   db_subnet_group_name = aws_db_subnet_group.backend_db_subnet_group.name # subnets db communicates with
 
@@ -406,19 +428,18 @@ resource "aws_security_group" "wordpress_rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
-    
+    #cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
+    security_groups = ["${aws_security_group.webserver_sg.id}"]
   }
   
   egress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
-    
+    #cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
+    security_groups = ["${aws_security_group.webserver_sg.id}"]
   }
 
   
   }
 
-*/
