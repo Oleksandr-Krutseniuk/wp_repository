@@ -339,7 +339,7 @@ resource "aws_security_group" "webserver_sg" {
     protocol    = "tcp"
     # если cidr_blocks будут нужны - я их раскомментирую 
     # cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
-    security_groups = ["${aws_security_group.wordpress-rds-sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
+    security_groups = ["${aws_security_group.wordpress_rds_sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
   }
 
 
@@ -349,7 +349,7 @@ resource "aws_security_group" "webserver_sg" {
     protocol    = "tcp"
     # если cidr_blocks будут нужны - я их раскомментирую 
     # cidr_blocks = [aws_subnet.private_subnet_1.cidr_block,aws_subnet.private_subnet_2.cidr_block]
-    security_groups = ["${aws_security_group.wordpress-rds-sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
+    security_groups = ["${aws_security_group.wordpress_rds_sg.id}"] # sec_grp RDS so connection on 3306 is allowed only to RDS
     
   }
 
