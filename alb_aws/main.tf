@@ -300,7 +300,7 @@ resource "aws_security_group" "webserver_sg" {
       description = "HTTP"
       # ограничу прием трафика по порту только из лоад беленсера. в поле "security_groups" указывается группа безопасности, 
       # к участникам которой применяется данное правило безопасности 
-      security_groups = ["${aws_security_group.lb.id}"]
+      cidr_blocks = ["0.0.0.0/0"]#security_groups = ["${aws_security_group.lb.id}"]
      } 
      
     egress {
@@ -308,7 +308,7 @@ resource "aws_security_group" "webserver_sg" {
       to_port          = 80
       protocol         = "tcp" # потом попробовать сменить протокол на http, все же обмен будет проходить с http
       # тоже самое делаю для исходящего, ЕС2 должны общаться по 80 только с лоад беленсером
-      security_groups = ["${aws_security_group.lb.id}"]
+      cidr_blocks = ["0.0.0.0/0"] #security_groups = ["${aws_security_group.lb.id}"]
     }
     
 
