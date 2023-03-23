@@ -1,7 +1,0 @@
-Configuration creates: 
-
-● VPC (CIDR 10.0.0.0/16) with subnets (2 private and 2 public )
-● NAT and Internet gateways
-● Application load balancer and target group
-● RDS database db.t3.micro with custom subnet group and EC2 instance t3.micro 
-● Security groups, route tables, and other required resources

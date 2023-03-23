@@ -1,2 +1,0 @@
-[wordpress] # group
-wordpress-1 ansible_host=10.0.8.158    
