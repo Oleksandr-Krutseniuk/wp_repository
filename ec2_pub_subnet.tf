@@ -69,7 +69,7 @@ resource "aws_instance" "bastion" {
 
 }
 
-resource "aws_security_group" "bastion_sg" { # если надо будет - добавлю 443
+resource "aws_security_group" "bastion_sg" { 
     name        = "bastion_sg"
     vpc_id = aws_vpc.my_vpc.id
 
@@ -101,6 +101,22 @@ resource "aws_security_group" "bastion_sg" { # если надо будет - д
       cidr_blocks = ["0.0.0.0/0"]
     }
   
+
+    ingress {
+      from_port   = 8080
+      to_port     = 8080
+      protocol    = "tcp"  
+      cidr_blocks = ["0.0.0.0/0"]
+     } 
+     
+    egress {
+      from_port        = 8080
+      to_port          = 8080
+      protocol         = "tcp"  
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+
     ingress { 
       from_port   = 22 
       to_port     = 22
