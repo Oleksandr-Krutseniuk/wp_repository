@@ -53,6 +53,34 @@ resource "aws_route_table_association" "public_subnet_association_1" {
 }
 
 
+# create public subnet1
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id     = aws_vpc.my_vpc.id
+  cidr_block = "10.0.2.0/24"
+  map_public_ip_on_launch = true # assigns public IP to the hosts upon creation
+  availability_zone = "us-west-2b"
+  tags = {
+    Name = "Public-Subnet-1"
+  }
+}
+
+# route table for public subnets.allows hosts from public subnets use gateway to communicate with hosts in internet
+resource "aws_route_table" "public_route_table_2" {
+  vpc_id = aws_vpc.my_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.my_igw.id
+  }
+  tags = {
+    Name = "Public-RT2"
+  }
+}
+
+# Attach public subnet1 to route table (makes route table active within a subnet)
+resource "aws_route_table_association" "public_subnet_association_1" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_route_table_2.id
+}
 
 
 resource "aws_instance" "bastion" {
